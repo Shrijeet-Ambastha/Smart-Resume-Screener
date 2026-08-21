@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Resume Screener</title>
+
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <h1>Smart Resume Screener</h1>
+
+    <p>Upload resumes and compare them with a job description.</p>
+
+    <hr>
+
+    <h2>Job Description</h2>
+
+    <p>Enter the job description manually or upload a file.</p>
+
+    <textarea
+        id="jobDescription"
+        rows="10"
+        placeholder="Enter the job description here..."
+    ></textarea>
+
+    <br><br>
+
+    <p><strong>OR</strong></p>
+
+    <input
+        type="file"
+        id="jobFile"
+        accept=".pdf,.txt"
+    >
+
+    <hr>
+
+    <h2>Upload Resume</h2>
+
+    <input
+        type="file"
+        id="resumeFile"
+        accept=".pdf,.txt"
+    >
+
+    <br><br>
+
+    <button onclick="screenResume()">Start Screening</button>
+
+    <p id="message"></p>
+
+    <hr>
+
+    <h2>Screening Results</h2>
+
+    <div id="result"></div>
+
+    <script>
+
+        async function screenResume() {
+
+            const resumeFile = document.getElementById("resumeFile").files[0];
+            const jobFile = document.getElementById("jobFile").files[0];
+            const jobDescription = document.getElementById("jobDescription").value;
+
+            const message = document.getElementById("message");
+            const result = document.getElementById("result");
+
+            if (!resumeFile) {
+                message.innerText = "Please upload a resume.";
+                return;
+            }
+
+            if (!jobDescription && !jobFile) {
+                message.innerText = "Please enter or upload a job description.";
+                return;
+            }
+
+            message.innerText = "Screening resume...";
+            result.innerHTML = "";
+
+            const formData = new FormData();
+
+            formData.append("resume", resumeFile);
+
+            if (jobDescription) {
+                formData.append("job_description", jobDescription);
+            }
+
+            if (jobFile) {
+                formData.append("job_file", jobFile);
+            }
+
+            try {
+
+                const response = await fetch("/screen", {
+                    method: "POST",
+                    body: formData
+                });
+
+                try {
+
+    const response = await fetch("/screen", {
+        method: "POST",
+        body: formData
+    });
+
+    const text = await response.text();
+
+    if (!response.ok) {
+        message.innerText = "Server Error: " + text;
+        console.log("Server Error:", text);
+        return;
+    }
+
+    const data = JSON.parse(text);
+
+    message.innerText = "Resume processed successfully.";
+
+    result.innerHTML = `
+        <h3>Candidate</h3>
+
+        <p>
+            <strong>Resume:</strong>
+            ${data.candidate}
+        </p>
+
+        <h3>AI Screening Result</h3>
+
+        <div class="ai-result">
+            <pre>${data.ai_result}</pre>
+        </div>
+
+        <h3>Extracted Resume Text</h3>
+
+        <textarea rows="15" readonly>${data.resume_text}</textarea>
+
+        <h3>Job Description</h3>
+
+        <textarea rows="10" readonly>${data.job_description}</textarea>
+    `;
+
+} catch (error) {
+
+    message.innerText = "Error: " + error.message;
+
+    console.log(error);
+}
+
+                if (!response.ok) {
+                    message.innerText = "Something went wrong.";
+                    return;
+                }
+
+                message.innerText = "Resume processed successfully.";
+
+               result.innerHTML = `
+    <h3>Candidate</h3>
+
+    <p>
+        <strong>Resume:</strong>
+        ${data.candidate}
+    </p>
+
+    <h3>AI Screening Result</h3>
+
+    <div class="ai-result">
+        <pre>${data.ai_result}</pre>
+    </div>
+
+    <h3>Extracted Resume Text</h3>
+
+    <textarea rows="15" readonly>${data.resume_text}</textarea>
+
+    <h3>Job Description</h3>
+
+    <textarea rows="10" readonly>${data.job_description}</textarea>
+`;
+
+            } catch (error) {
+
+                message.innerText = "Unable to connect to the server.";
+
+                console.log(error);
+            }
+        }
+
+    </script>
+
+</body>
+</html>
