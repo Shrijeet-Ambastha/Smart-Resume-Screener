@@ -1,31 +1,7 @@
-from google import genai
-from dotenv import load_dotenv
 import os
-
-BASE_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.abspath(__file__)
-        )
-    )
-)
-
-load_dotenv(
-    os.path.join(BASE_DIR, ".env")
-)
-
-api_key = os.getenv("GEMINI_API_KEY")
-
-if not api_key:
-    raise ValueError("GEMINI_API_KEY is missing from .env")
-
-client = genai.Client(api_key=api_key)
-
-
 import time
-from google import genai
 from dotenv import load_dotenv
-import os
+from google import genai
 
 BASE_DIR = os.path.dirname(
     os.path.dirname(
@@ -35,14 +11,12 @@ BASE_DIR = os.path.dirname(
     )
 )
 
-load_dotenv(
-    os.path.join(BASE_DIR, ".env")
-)
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 api_key = os.getenv("GEMINI_API_KEY")
 
 if not api_key:
-    raise ValueError("GEMINI_API_KEY is missing from .env")
+    raise ValueError("GEMINI_API_KEY is missing")
 
 client = genai.Client(api_key=api_key)
 
@@ -120,8 +94,10 @@ Job Description:
 
                 else:
 
-                    return "Gemini is currently busy. Please try screening again in a few minutes."
+                    return (
+                        "Gemini is currently busy. "
+                        "Please try screening again in a few minutes."
+                    )
 
             else:
-
                 raise e
