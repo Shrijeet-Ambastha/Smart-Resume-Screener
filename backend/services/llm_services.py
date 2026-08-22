@@ -121,7 +121,7 @@ import time
 from dotenv import load_dotenv
 from google import genai
 
-from backend.services.grok_service import match_resume_with_grok
+from backend.services.ollama_service import match_resume_with_ollama
 
 
 BASE_DIR = os.path.dirname(
@@ -132,15 +132,17 @@ BASE_DIR = os.path.dirname(
     )
 )
 
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+load_dotenv(
+    os.path.join(BASE_DIR, ".env")
+)
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+api_key = os.getenv("GEMINI_API_KEY")
 
-if not GEMINI_API_KEY:
+if not api_key:
     raise ValueError("GEMINI_API_KEY is missing")
 
 client = genai.Client(
-    api_key=GEMINI_API_KEY
+    api_key=api_key
 )
 
 
@@ -151,23 +153,16 @@ You are an AI resume screening assistant.
 
 Compare the candidate resume with the job description.
 
-Evaluate:
-
-1. Technical skills
-2. Relevant experience
-3. Education
-4. Missing skills
-5. Overall suitability
-
 IMPORTANT:
+You MUST return a complete screening result.
 
-The FIRST line MUST be:
+The FIRST line MUST contain the match score exactly in this format:
 
-Score: X/10
+Score: 8/10
 
 The score must be a number from 1 to 10.
 
-Return:
+Then return exactly these sections:
 
 Score: X/10
 
@@ -193,11 +188,10 @@ Job Description:
 {job_description}
 """
 
-    # Try Gemini
     try:
 
         print("================================")
-        print("Trying Gemini...")
+        print("CALLING GEMINI")
         print("================================")
 
         response = client.models.generate_content(
@@ -205,98 +199,39 @@ Job Description:
             contents=prompt
         )
 
-        result = response.text
+        print("Gemini successful")
 
-        print("Gemini succeeded.")
+        return response.text
 
-        return result
+    except Exception as gemini_error:
 
-    except Exception as e:
+        error_message = str(gemini_error)
 
-        error_message = str(e)
-
-        print("================================")
-        print("GEMINI ERROR")
-        print("================================")
+        print("Gemini failed:")
         print(error_message)
 
-        # Check Gemini quota error
-        if (
-            "429" in error_message
-            or "RESOURCE_EXHAUSTED" in error_message
-            or "Quota exceeded" in error_message
-            or "quota" in error_message.lower()
-        ):
+        print("================================")
+        print("SWITCHING TO OLLAMA")
+        print("================================")
 
-            print("================================")
-            print("GEMINI QUOTA EXCEEDED")
-            print("SWITCHING TO GROK...")
-            print("================================")
+        try:
 
-            try:
+            result = match_resume_with_ollama(
+                resume_text,
+                job_description
+            )
 
-                result = match_resume_with_grok(
-                    resume_text,
-                    job_description
-                )
+            print("Ollama successful")
 
-                print("GROK FALLBACK SUCCESSFUL")
+            return result
 
-                return result
+        except Exception as ollama_error:
 
-            except Exception as grok_error:
+            print("Ollama also failed:")
+            print(str(ollama_error))
 
-                print("================================")
-                print("GROK ERROR")
-                print("================================")
-                print(str(grok_error))
-
-                raise Exception(
-                    "Gemini quota exceeded and Grok fallback failed: "
-                    + str(grok_error)
-                )
-
-        # Gemini temporarily unavailable
-        elif (
-            "503" in error_message
-            or "UNAVAILABLE" in error_message
-        ):
-
-            print("Gemini temporarily unavailable.")
-
-            print("Switching to Grok...")
-
-            try:
-
-                return match_resume_with_grok(
-                    resume_text,
-                    job_description
-                )
-
-            except Exception as grok_error:
-
-                raise Exception(
-                    "Gemini unavailable and Grok fallback failed: "
-                    + str(grok_error)
-                )
-
-        # Any other Gemini error
-        else:
-
-            print("Gemini failed.")
-
-            print("Switching to Grok...")
-
-            try:
-
-                return match_resume_with_grok(
-                    resume_text,
-                    job_description
-                )
-
-            except Exception as grok_error:
-
-                raise Exception(
-                    "Gemini failed and Grok fallback failed: "
-                    + str(grok_error)
-                )
+            raise Exception(
+                "Both Gemini and Ollama failed. "
+                f"Gemini: {gemini_error} | "
+                f"Ollama: {ollama_error}"
+            )
