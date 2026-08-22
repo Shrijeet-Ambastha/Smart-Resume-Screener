@@ -33,7 +33,8 @@ def save_resume(
     filename,
     resume_text,
     job_description,
-    ai_result
+    ai_result,
+    match_score
 ):
 
     connection = get_connection()

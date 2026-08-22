@@ -109,6 +109,15 @@ async def screen_resume(
             resume_text,
             final_job_description
         )
+        match = re.search(r"Score:\s*(\d+(?:\.\d+)?)\s*/\s*10", ai_result)
+
+        match_score = None
+
+        if match:
+         match_score = float(match.group(1))
+
+
+
 
         match_score = extract_score(ai_result)
 
