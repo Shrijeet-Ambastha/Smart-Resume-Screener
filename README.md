@@ -52,7 +52,8 @@ System Architecture
                             ▼
                  ┌─────────────────────┐
                  │    Gemini LLM       │
-                 │  Resume Screening   │
+                 │  Resume Screening   |
+                 │ for offline use ollama|
                  └──────────┬──────────┘
                             │
                     AI Screening Result
@@ -70,3 +71,38 @@ System Architecture
                  │ Shortlisted         │
                  │ Candidates          │
                  └─────────────────────┘
+
+LLM Prompt
+You are an AI resume screening assistant.
+
+Compare the candidate resume with the job description.
+
+IMPORTANT:
+You MUST return a complete screening result.
+
+The FIRST line MUST contain the match score exactly in this format:
+
+Score: 8/10
+
+The score must be a number from 1 to 10.
+
+Then return exactly these sections:
+
+Score: X/10
+
+Matching Skills:
+- skill 1
+- skill 2
+
+Missing Skills:
+- skill 1
+- skill 2
+
+Strengths:
+- strength 1
+- strength 2
+
+Justification:
+Give a short explanation of why the candidate matches the job.
+
+                 
