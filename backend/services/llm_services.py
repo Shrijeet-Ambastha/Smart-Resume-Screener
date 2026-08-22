@@ -121,7 +121,7 @@ import time
 from dotenv import load_dotenv
 from google import genai
 
-from backend.services.ollama_service import match_resume_with_ollama
+#from backend.services.ollama_service import match_resume_with_ollama
 
 
 BASE_DIR = os.path.dirname(
